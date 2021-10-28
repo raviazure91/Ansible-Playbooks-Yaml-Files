@@ -1,0 +1,21 @@
+---
+- hosts: all
+  vars:
+  - warName: root.war
+  - warRemotePath: /home/weblogic
+
+  tasks:
+  - name: Download WAR to server
+    synchronize: src={{ /home/src }}/{{ warName }} dest={{ warRemotePath }}/{{ warName }}
+
+  - name: Unzip WAR file
+    unarchive: src={{ warRemotePath }}/{{ warName }} dest=/var/lib/weblogic/webapps/ROOT/ copy=no mode=0755 owner=weblogic group=weblogic
+    notify:
+        - Restart weblogic
+
+  - name: Delete remote war file
+    file: path={{ warRemotePath }}/{{ warName }} state=absent
+
+  handlers:
+    - name: Restart weblogic
+      service: name=weblogic state=restarted
